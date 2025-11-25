@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+local.properties
+
+# IDE
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.idea/shelf
+
+.DS_Store
+
+# Builds / outputs
+/build
+app/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.aab
+*.keystore
+*.jks
+*.log
