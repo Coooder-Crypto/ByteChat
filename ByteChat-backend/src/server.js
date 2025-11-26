@@ -116,7 +116,7 @@ async function handleIncomingMessage(ws, payload) {
   const { userId, roomId } = ws.meta;
   const msg = {
     id: randomUUID(),
-    clientId: payload.id || null,
+    clientId: payload.clientId || payload.id || null,
     roomId,
     senderId: userId,
     msgType: payload.msgType || "text",
@@ -142,6 +142,7 @@ async function handleIncomingMessage(ws, payload) {
     broadcast(roomId, {
       type: "message",
       id: saved.id,
+      clientId: msg.clientId,
       roomId,
       senderId: userId,
       msgType: msg.msgType,
