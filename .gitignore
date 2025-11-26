@@ -2,19 +2,21 @@
 .gradle
 /local.properties
 local.properties
-
-# IDE
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.idea/shelf
-
 .DS_Store
 
-# Builds / outputs
+# IDE (JetBrains/Android Studio)
+/.idea
+/.idea/**
+ByteChat-native/.idea
+ByteChat-native/.idea/**
+**/.idea
+**/.idea/**
+!.idea/.name
+!.idea/codeStyles
+!.idea/inspectionProfiles
+!.idea/runConfigurations
+
+# Android / native builds
 /build
 app/build
 /captures
@@ -25,4 +27,42 @@ app/build
 *.aab
 *.keystore
 *.jks
+
+# Web / backend (Node, tooling)
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+dist
+.next
+.nuxt
+out
+coverage
+.turbo
+.cache
+.parcel-cache
+/.vercel
+/.nitro
+
+# Logs & runtime
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.pid
+*.pid.lock
+
+# Env / secrets
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS / editor
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
