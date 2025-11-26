@@ -3,11 +3,13 @@ import url from "url";
 import express from "express";
 import { WebSocketServer } from "ws";
 import { randomUUID } from "crypto";
+import cors from "cors";
 import { config } from "./config.js";
 import { pool, initDb } from "./db.js";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Health
 app.get("/health", (_req, res) => res.json({ ok: true }));
