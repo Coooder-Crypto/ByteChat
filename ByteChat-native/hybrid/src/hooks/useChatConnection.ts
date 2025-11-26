@@ -8,7 +8,9 @@ export function useChatConnection() {
     localStorage.getItem(STORAGE_KEYS.user) || `u-${Math.floor(Math.random() * 9000 + 1000)}`
   );
   const [roomId, setRoomId] = useState(localStorage.getItem(STORAGE_KEYS.room) || "lobby");
-  const [wsUrl, setWsUrl] = useState(localStorage.getItem(STORAGE_KEYS.ws) || "ws://10.0.2.2:3000/ws");
+  const [wsUrl, setWsUrl] = useState(
+    localStorage.getItem(STORAGE_KEYS.ws) || "ws://10.0.2.2:3000/ws"
+  );
   const [status, setStatus] = useState<{ text: string; tone: "ok" | "warn" | "fail" | "muted" }>({
     text: "Disconnected",
     tone: "muted",
@@ -89,7 +91,8 @@ export function useChatConnection() {
     };
     setMessages((prev) => {
       if (prev.some((m) => m.id === copy.id)) return prev;
-      if (copy.clientId && prev.some((m) => m.clientId && m.clientId === copy.clientId)) return prev;
+      if (copy.clientId && prev.some((m) => m.clientId && m.clientId === copy.clientId))
+        return prev;
       const next = [...prev, copy].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
       return next;
     });
@@ -97,7 +100,9 @@ export function useChatConnection() {
   };
 
   const updateMessageStatus = (id: string, newStatus: MsgStatus) => {
-    setMessages((prev) => prev.map((m) => (m.id === id || m.clientId === id ? { ...m, localStatus: newStatus } : m)));
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id || m.clientId === id ? { ...m, localStatus: newStatus } : m))
+    );
   };
 
   const handleConnect = (targetRoom?: string, targetUser?: string, targetWs?: string) => {
@@ -202,7 +207,9 @@ export function useChatConnection() {
       .replace(/\/ws$/, "");
     const cursorParam = historyCursor ? `&cursor=${encodeURIComponent(historyCursor)}` : "";
     try {
-      const res = await fetch(`${base}/history?roomId=${encodeURIComponent(roomId)}&limit=20${cursorParam}`);
+      const res = await fetch(
+        `${base}/history?roomId=${encodeURIComponent(roomId)}&limit=20${cursorParam}`
+      );
       if (!res.ok) throw new Error("bad status");
       const data = await res.json();
       if (Array.isArray(data?.items)) {

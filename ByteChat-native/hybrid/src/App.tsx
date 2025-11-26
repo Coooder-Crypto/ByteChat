@@ -24,7 +24,18 @@ const theme = extendTheme({
 
 export function App() {
   const {
-    state: { userId, roomId, wsUrl, status, view, roomList, messages, loadingHistory, messagesRef, input },
+    state: {
+      userId,
+      roomId,
+      wsUrl,
+      status,
+      view,
+      roomList,
+      messages,
+      loadingHistory,
+      messagesRef,
+      input,
+    },
     setUserId,
     setRoomId,
     setWsUrl,

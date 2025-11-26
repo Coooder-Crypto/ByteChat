@@ -26,7 +26,11 @@ export function HomeView({
             <Text fontSize="sm" color="gray.600">
               用户 ID
             </Text>
-            <Input value={userId} onChange={(e) => onChangeUser(e.target.value)} placeholder="u-123" />
+            <Input
+              value={userId}
+              onChange={(e) => onChangeUser(e.target.value)}
+              placeholder="u-123"
+            />
           </Stack>
           <Stack spacing={1}>
             <Text fontSize="sm" color="gray.600">
@@ -42,7 +46,11 @@ export function HomeView({
             <Text fontSize="sm" color="gray.600">
               房间 ID
             </Text>
-            <Input value={roomId} onChange={(e) => onChangeRoom(e.target.value)} placeholder="lobby" />
+            <Input
+              value={roomId}
+              onChange={(e) => onChangeRoom(e.target.value)}
+              placeholder="lobby"
+            />
           </Stack>
         </SimpleGrid>
         <Flex justify="flex-end" mt={3}>
@@ -63,7 +71,13 @@ export function HomeView({
         </Flex>
         <Flex wrap="wrap" gap={2}>
           {roomList.map((r) => (
-            <Button key={r} variant="outline" size="sm" onClick={() => onJoin(r)} colorScheme="blue">
+            <Button
+              key={r}
+              variant="outline"
+              size="sm"
+              onClick={() => onJoin(r)}
+              colorScheme="blue"
+            >
               {r}
             </Button>
           ))}

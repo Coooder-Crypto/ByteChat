@@ -15,7 +15,7 @@ export function HeaderBar({ view, roomId, status }: HeaderBarProps) {
       top={0}
       zIndex={20}
       w="100%"
-      h={18}
+      h={16}
       bg="white"
       px={4}
       py={4}
@@ -26,9 +26,17 @@ export function HeaderBar({ view, roomId, status }: HeaderBarProps) {
       <Flex align="center" justify="space-between" gap={3}>
         <Flex align="center" gap={2}>
           {isChat && (
-            <Button size="sm" variant="outline" onClick={() => window.history.back()}>
-              返回
-            </Button>
+            <Box
+              as="span"
+              borderLeft="2px solid"
+              borderBottom="2px solid"
+              borderColor="gray.600"
+              w="10px"
+              h="10px"
+              onClick={() => window.history.back()}
+              transform="rotate(45deg)"
+              ml="2px"
+            />
           )}
           <Heading size="md">{isChat ? `房间：${roomId || ""}` : "ByteChat"}</Heading>
         </Flex>

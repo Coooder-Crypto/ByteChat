@@ -62,7 +62,14 @@ export function ChatView({
         </Box>
       </Box>
 
-      <Box position="sticky" bottom="0" w="100%" bg="white" borderTop="1px solid" borderColor="gray.100">
+      <Box
+        position="sticky"
+        bottom="0"
+        w="100%"
+        bg="white"
+        borderTop="1px solid"
+        borderColor="gray.100"
+      >
         <Flex gap={2} align="flex-end" p={3}>
           <Input
             as="textarea"

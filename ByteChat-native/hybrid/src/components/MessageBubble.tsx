@@ -22,7 +22,13 @@ export function MessageBubble({ msg, isMe }: { msg: ChatMessage; isMe: boolean }
         {msg.content || ""}
       </Text>
       {msg.localStatus && (
-        <Text fontSize="xs" mt={1} color={toneColor(msg.localStatus === "ok" ? "ok" : msg.localStatus === "fail" ? "fail" : "muted")}>
+        <Text
+          fontSize="xs"
+          mt={1}
+          color={toneColor(
+            msg.localStatus === "ok" ? "ok" : msg.localStatus === "fail" ? "fail" : "muted"
+          )}
+        >
           {msg.localStatus === "ok" ? "已送达" : msg.localStatus === "fail" ? "失败" : "发送中"}
         </Text>
       )}
