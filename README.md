@@ -6,6 +6,7 @@
 - `ByteChat-native/` — Android 项目，WebView 加载本地 H5 模板（`app/src/main/assets/index.html`）。
 - `ByteChat-website/` — Web 前端目录（当前为空/自定义）。
 - `ByteChat-backend/` — Node.js 后端（Express + ws + pg），提供 WebSocket + HTTP 历史查询。
+- `ByteChat-native/hybrid/` — Vite + React 项目（构建产物输出到 `ByteChat-native/app/src/main/assets` 供 WebView 使用）。
 
 ## 技术栈
 - **前端 (H5 模板)**：React 18 UMD + 自定义样式，运行于 Android WebView。
@@ -54,6 +55,12 @@
 
 ## Android 前端（Hybrid）
 - 代码在 `ByteChat-native/`，WebView 加载 `app/src/main/assets/index.html`（React 模板，无聊天逻辑，可自行扩展）。
+- 前端源码在 `ByteChat-native/hybrid/`，使用 Vite + React；构建命令会把产物输出到 `app/src/main/assets`：
+  ```bash
+  cd ByteChat-native/hybrid
+  npm install
+  npm run build   # 产物写入 ../app/src/main/assets
+  ```
 - 运行：用 Android Studio 打开 `ByteChat-native`，选择设备/模拟器运行。
 
 ## API 与消息协议（后端）

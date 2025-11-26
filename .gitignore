@@ -28,6 +28,11 @@ app/build
 *.keystore
 *.jks
 
+# Hybrid/Vite outputs (keep source, ignore build)
+ByteChat-native/hybrid/node_modules
+ByteChat-native/hybrid/dist
+ByteChat-native/app/src/main/assets/assets
+
 # Web / backend (Node, tooling)
 node_modules
 pnpm-lock.yaml
