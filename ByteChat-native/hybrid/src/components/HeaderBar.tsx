@@ -1,52 +1,44 @@
-import { Box, Flex, Heading, Text, Button } from "@chakra-ui/react";
+import { ArrowLeft } from "lucide-react";
 import { toneColor } from "../utils/theme";
+import { cn } from "../core/utils";
 
 type HeaderBarProps = {
   view: "home" | "chat";
   roomId?: string;
   status?: { text: string; tone: "ok" | "warn" | "fail" | "muted" };
+  onBack?: () => void;
 };
 
-export function HeaderBar({ view, roomId, status }: HeaderBarProps) {
+export function HeaderBar({ view, roomId, status, onBack }: HeaderBarProps) {
   const isChat = view === "chat";
   return (
-    <Box
-      position="sticky"
-      top={0}
-      zIndex={20}
-      w="100%"
-      h={16}
-      bg="white"
-      px={4}
-      py={4}
-      borderBottom="1px solid"
-      borderColor="gray.200"
-      boxShadow="sm"
-    >
-      <Flex align="center" justify="space-between" gap={3}>
-        <Flex align="center" gap={2}>
+    <div className="sticky top-0 z-20 w-full bg-white px-4 py-4 border-b border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           {isChat && (
-            <Box
-              as="span"
-              borderLeft="2px solid"
-              borderBottom="2px solid"
-              borderColor="gray.600"
-              w="10px"
-              h="10px"
-              onClick={() => window.history.back()}
-              transform="rotate(45deg)"
-              ml="2px"
-            />
+            <button
+              aria-label="返回"
+              onClick={() => onBack?.()}
+              className={cn(
+                "inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 text-gray-700",
+                "hover:bg-gray-200 active:bg-gray-300 transition-colors"
+              )}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
           )}
-          <Heading size="md">{isChat ? `房间：${roomId || ""}` : "ByteChat"}</Heading>
-        </Flex>
+          <span className="text-lg font-semibold truncate">{isChat ? `房间：${roomId || ""}` : "ByteChat"}</span>
+        </div>
         {isChat && status && (
-          <Flex align="center" gap={2} fontSize="sm" color="gray.600">
-            <Box w="12px" h="12px" rounded="full" bg={toneColor(status.tone)} />
-            <Text>{status.text}</Text>
-          </Flex>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span
+              className="inline-block w-3 h-3 rounded-full"
+              style={{ background: toneColor(status.tone) }}
+            />
+            <span>{status.text}</span>
+          </div>
         )}
-      </Flex>
-    </Box>
+      </div>
+    </div>
   );
 }

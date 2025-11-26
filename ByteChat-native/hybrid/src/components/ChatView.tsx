@@ -1,7 +1,7 @@
 import { ChatProps } from "../core/types";
-import { toneColor } from "../utils/theme";
 import { MessageBubble } from "./MessageBubble";
-import { Box, Button, Flex, Heading, Input, Text } from "@chakra-ui/react";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
 
 export function ChatView({
   roomId,
@@ -16,63 +16,35 @@ export function ChatView({
   loadingHistory,
 }: ChatProps) {
   return (
-    <Flex direction="column" minH="100vh" bg="white">
-      <Box
-        position="sticky"
-        top="0"
-        zIndex={10}
-        bg="white"
-        px={3}
-        py={2}
-        borderBottom="1px solid"
-        borderColor="gray.100"
-      >
-        <Flex align="center" justify="space-between" fontSize="sm" color="gray.600">
-          <Flex align="center" gap={2}>
-            <Heading size="sm">房间：{roomId}</Heading>
-            <Flex align="center" gap={1}>
-              <Box w="10px" h="10px" rounded="full" bg={toneColor(status.tone)} />
-              <Text>{status.text}</Text>
-            </Flex>
-          </Flex>
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            退出
-          </Button>
-        </Flex>
-      </Box>
+    <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex-1 min-h-0 flex flex-col px-3 pt-2 gap-2">
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold">房间：{roomId}</span>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
+              <span>{status.text}</span>
+            </div>
+          </div>
+        </div>
 
-      <Box flex="1" minH="0" display="flex" flexDir="column" px={3} pt={2} gap={2}>
-        <Text textAlign="center" fontSize="xs" color="gray.500">
+        <div className="text-center text-xs text-gray-500">
           {loadingHistory ? "加载中..." : "上滑加载更多历史"}
-        </Text>
+        </div>
 
-        <Box
+        <div
           ref={messagesRef}
-          flex="1"
-          minH="0"
-          overflowY="auto"
-          display="flex"
-          flexDir="column"
-          gap={2}
-          pb={2}
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pb-2"
         >
           {messages.map((msg) => (
             <MessageBubble key={msg.id} msg={msg} isMe={isMe(msg.senderId)} />
           ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Box
-        position="sticky"
-        bottom="0"
-        w="100%"
-        bg="white"
-        borderTop="1px solid"
-        borderColor="gray.100"
-      >
-        <Flex gap={2} align="flex-end" p={3}>
-          <Input
-            as="textarea"
+      <div className="sticky bottom-0 w-full bg-white border-t border-gray-100">
+        <div className="flex gap-2 items-end p-3">
+          <Textarea
             value={input}
             onChange={(e) => onChangeInput(e.target.value)}
             onKeyDown={(e) => {
@@ -83,13 +55,11 @@ export function ChatView({
             }}
             placeholder="输入消息，Cmd/Ctrl + Enter 发送"
             rows={2}
-            resize="vertical"
+            className="flex-1"
           />
-          <Button colorScheme="blue" onClick={onSend}>
-            发送
-          </Button>
-        </Flex>
-      </Box>
-    </Flex>
+          <Button onClick={onSend}>发送</Button>
+        </div>
+      </div>
+    </div>
   );
 }
