@@ -30,6 +30,7 @@ export function App() {
   } = useChatConnection();
 
   return (
+    // TODO: improve layout
     <div className="min-h-screen w-full">
       <HeaderBar
         view={view}

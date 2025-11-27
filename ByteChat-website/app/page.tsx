@@ -6,6 +6,7 @@ import { loadBasics, persistBasics } from "../components/storage";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
+// TODO: monorepo with native app
 export default function HomePage() {
   const basics = loadBasics();
   const [userId, setUserId] = useState(basics.userId);

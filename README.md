@@ -34,7 +34,7 @@
 - **数据库**：Postgres（推荐 Docker 运行）。
 
 ## 后端快速部署
-1) 准备 Postgres（可用 Docker）  
+1) 准备 Postgres（可用 Docker） — 这里端口用 5432，和后端默认 `DATABASE_URL` 一致  
    ```bash
    cat > docker-compose.yml <<'EOF'
    version: "3.9"
@@ -47,7 +47,7 @@
          POSTGRES_PASSWORD: bytechat
          POSTGRES_DB: bytechat
        ports:
-         - "5433:5432"
+         - "5432:5432"
        volumes:
          - pgdata:/var/lib/postgresql/data
        healthcheck:
@@ -60,12 +60,15 @@
    EOF
    docker compose up -d
    ```
-2) 初始化后端  
+2) 初始化后端（确保 Node 18+）  
    ```bash
    cd ByteChat-backend
-   cp .env.example .env   # 如需修改端口或 DB URL
+   cp .env.example .env
+   # 填入或确认：
+   # PORT=3000
+   # DATABASE_URL=postgresql://bytechat:bytechat@localhost:5432/bytechat
    npm install
-   psql "$DATABASE_URL" -f schema.sql   # 默认指向 5433
+   psql "$DATABASE_URL" -f schema.sql   # 保证 DATABASE_URL 指向上面 5432 的实例
    npm run start          # 或 npm run dev（Node 18+）
    ```
    - WS 入口：`ws://localhost:3000/ws?userId=...&roomId=...`
@@ -95,10 +98,6 @@
 - 消息表索引：`(room_id, created_at desc, id desc)`；`client_id` 唯一用于幂等。
 - 默认连接串：`postgresql://bytechat:bytechat@localhost:5433/bytechat`。
 
-## 自定义与扩展
-- 在 `ByteChat-website/` 构建 Web 前端产物后，可替换 Android 资产或部署为独立站点。
-- 后端可扩展：鉴权、上传接口（媒体）、已读/撤回、typing、搜索、限流等。
-- DB schema 可按需增加字段/索引，或迁移到生产 Postgres。
 
 ## 环境变量（后端）
 - `PORT`：HTTP/WS 监听端口，默认 3000

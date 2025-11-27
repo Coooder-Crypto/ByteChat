@@ -88,6 +88,7 @@ app.get("/history", async (req, res) => {
 });
 
 // Upload image
+// TODO: use blob service instead
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "no_file" });

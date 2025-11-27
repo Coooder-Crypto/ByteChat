@@ -3,6 +3,7 @@ import { ChatMessage, MsgStatus } from "../core/types";
 import { STORAGE_KEYS, saveCache, loadCache, saveRoomList, loadRoomList } from "../core/storage";
 import { cryptoRandom } from "../utils/random";
 
+// TODO: split into multiple hooks as it gets too big
 export function useChatConnection() {
   const [userId, setUserId] = useState(
     localStorage.getItem(STORAGE_KEYS.user) || `u-${Math.floor(Math.random() * 9000 + 1000)}`
@@ -305,15 +306,18 @@ export function useChatConnection() {
           .sort((a: any, b: any) => (a.createdAt || 0) - (b.createdAt || 0))
           .reverse();
         setMessages((prev) => {
-          const merged = [...ordered, ...prev].filter((m, idx, arr) => {
-            const sameId = arr.findIndex((x) => x.id === m.id) === idx;
-            const sameClient =
-              !m.clientId || arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
-            return sameId && sameClient;
-          }).map((m) => {
-            if (!m.mediaUrl) return m;
-            return { ...m, mediaUrl: withAbsoluteMedia(m.mediaUrl) };
-          });
+          const merged = [...ordered, ...prev]
+            .filter((m, idx, arr) => {
+              const sameId = arr.findIndex((x) => x.id === m.id) === idx;
+              const sameClient =
+                !m.clientId ||
+                arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
+              return sameId && sameClient;
+            })
+            .map((m) => {
+              if (!m.mediaUrl) return m;
+              return { ...m, mediaUrl: withAbsoluteMedia(m.mediaUrl) };
+            });
           return merged.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         });
         if (data.nextCursor) {
@@ -362,7 +366,8 @@ export function useChatConnection() {
         {
           ...(payload as any),
           mediaUrl: displayUrl || payloadUrl || undefined,
-          localStatus: wsRef.current && wsRef.current.readyState === WebSocket.OPEN ? "pending" : "fail",
+          localStatus:
+            wsRef.current && wsRef.current.readyState === WebSocket.OPEN ? "pending" : "fail",
         } as ChatMessage,
         false
       );
