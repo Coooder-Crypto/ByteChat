@@ -4,12 +4,38 @@ import express from "express";
 import { WebSocketServer } from "ws";
 import { randomUUID } from "crypto";
 import cors from "cors";
+import path from "path";
+import fs from "fs";
+import multer from "multer";
 import { config } from "./config.js";
 import { pool, initDb } from "./db.js";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || "");
+    cb(null, `${Date.now()}-${randomUUID()}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only images allowed"));
+    }
+    cb(null, true);
+  },
+});
 
 // Health
 app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -59,6 +85,15 @@ app.get("/history", async (req, res) => {
     console.error("history error", err);
     res.status(500).json({ error: "history_failed" });
   }
+});
+
+// Upload image
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "no_file" });
+  }
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ url });
 });
 
 const server = http.createServer(app);
