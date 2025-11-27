@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChatMessage, MsgStatus, cryptoRandom } from "@bytechat/core";
+import { ChatMessage, MsgStatus, cryptoRandom, normalizeMediaUrl } from "@bytechat/core";
 
 const STORAGE_KEYS = {
   history: (room: string) => `bytechat_history_${room}`,
@@ -61,28 +61,6 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
     [messages]
   );
 
-  const wsToHttpBase = (addr: string) =>
-    addr.replace(/^wss?:\/\//, addr.startsWith("wss") ? "https://" : "http://").replace(/\/ws$/, "");
-
-  const withAbsoluteMedia = (mediaUrl?: string | null, overrideWs?: string) => {
-    if (!mediaUrl) return mediaUrl;
-    const wsBase = wsToHttpBase(overrideWs || wsUrl);
-    try {
-      const wsHost = new URL(wsBase).hostname;
-      // If emulator-sent absolute URL points to 10.0.2.2, rewrite to current WS host (e.g., localhost)
-      if (mediaUrl.startsWith("http")) {
-        const u = new URL(mediaUrl);
-        if (u.hostname === "10.0.2.2") {
-          u.hostname = wsHost || "localhost";
-        }
-        return u.toString();
-      }
-      return `${wsBase}${mediaUrl}`;
-    } catch {
-      return mediaUrl;
-    }
-  };
-
   const connect = () => {
     if (!wsUrl || !userId || !roomId) {
       alert("请填写用户、房间与 WebSocket 地址");
@@ -118,7 +96,7 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
               senderId: data.senderId,
               msgType: data.msgType,
               content: data.content,
-              mediaUrl: withAbsoluteMedia(data.mediaUrl),
+              mediaUrl: normalizeMediaUrl(data.mediaUrl, wsUrl).displayUrl,
               metadata: data.metadata,
               createdAt: data.createdAt || Date.now(),
               localStatus: "ok",
@@ -193,7 +171,7 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
   const loadHistory = async () => {
     if (loadingHistory || historyExhausted) return;
     setLoadingHistory(true);
-    const base = wsToHttpBase(wsUrl);
+    const base = wsUrl.replace(/^wss?:\/\//, wsUrl.startsWith("wss") ? "https://" : "http://").replace(/\/ws$/, "");
     const cursorParam = historyCursor ? `&cursor=${encodeURIComponent(historyCursor)}` : "";
     try {
       const res = await fetch(`${base}/history?roomId=${encodeURIComponent(roomId)}&limit=20${cursorParam}`);
@@ -205,16 +183,16 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
           .sort((a: any, b: any) => (a.createdAt || 0) - (b.createdAt || 0))
           .reverse();
         setMessages((prev) => {
-          const merged = [...ordered, ...prev].filter((m, idx, arr) => {
-            const sameId = arr.findIndex((x) => x.id === m.id) === idx;
-            const sameClient =
-              !m.clientId || arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
-            return sameId && sameClient;
-          }).map((m) =>
-            m.mediaUrl && !m.mediaUrl.startsWith("http")
-              ? { ...m, mediaUrl: withAbsoluteMedia(m.mediaUrl) }
-              : m
-          );
+          const merged = [...ordered, ...prev]
+            .filter((m, idx, arr) => {
+              const sameId = arr.findIndex((x) => x.id === m.id) === idx;
+              const sameClient =
+                !m.clientId || arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
+              return sameId && sameClient;
+            })
+            .map((m) =>
+              m.mediaUrl ? { ...m, mediaUrl: normalizeMediaUrl(m.mediaUrl, wsUrl).displayUrl } : m
+            );
           return merged.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         });
         if (data.nextCursor) setHistoryCursor(data.nextCursor);

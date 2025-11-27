@@ -1,39 +1,15 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "target": "es2020",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@bytechat/core": [
-        "../packages/core/src"
-      ],
-      "@bytechat/core/*": [
-        "../packages/core/src/*"
-      ],
-      "@bytechat/ui": [
-        "../packages/ui/src"
-      ],
-      "@bytechat/ui/*": [
-        "../packages/ui/src/*"
-      ]
+      "@/*": ["./*"]
     },
     "plugins": [
       {

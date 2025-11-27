@@ -16,7 +16,8 @@
     "build:website": "pnpm --filter bytechat-website build",
     "lint:website": "pnpm --filter bytechat-website lint",
     "dev:backend": "pnpm --filter bytechat-backend dev",
-    "start:backend": "pnpm --filter bytechat-backend start"
+    "start:backend": "pnpm --filter bytechat-backend start",
+    "lint": "pnpm lint:hybrid && pnpm lint:website"
   },
   "engines": {
     "node": ">=18"

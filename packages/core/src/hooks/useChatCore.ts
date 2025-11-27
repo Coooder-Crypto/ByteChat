@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "../types";
 import { cryptoRandom } from "../random";
-import { uploadAndSendFile, wsToHttpBase } from "./media";
+import { uploadAndSendFile, wsToHttpBase, normalizeMediaUrl } from "./media";
 import { useMessageState } from "./messages";
 import { useHistory } from "./history";
 import { useChatBasics } from "./basics";
@@ -37,23 +37,7 @@ export function useChatCore() {
   const history = useHistory({
     roomId,
     wsUrl,
-    withAbsoluteMedia: (url) => {
-      if (!url) return url;
-      try {
-        const wsHost = new URL(wsUrl).hostname;
-        const base = wsToHttpBase(wsUrl);
-        if (url.startsWith("http")) {
-          const u = new URL(url);
-          if (["10.0.2.2", "localhost", "127.0.0.1"].includes(u.hostname) && wsHost) {
-            u.hostname = wsHost;
-          }
-          return u.toString();
-        }
-        return `${base}${url}`;
-      } catch {
-        return url;
-      }
-    },
+    withAbsoluteMedia: (url) => normalizeMediaUrl(url, wsUrl).displayUrl,
     messagesRef,
     setMessages,
   });
