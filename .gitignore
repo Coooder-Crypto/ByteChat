@@ -64,6 +64,4 @@ pnpm-debug.log*
 
 # OS / editor
 Thumbs.db
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+.idea/
