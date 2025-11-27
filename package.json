@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "ByteChat-native/hybrid",
-    "ByteChat-website",
-    "ByteChat-backend",
+    "apps/*",
+    "backend",
+    "native/*",
     "packages/*"
   ],
   "scripts": {

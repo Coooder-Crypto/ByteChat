@@ -7,7 +7,7 @@ export default defineConfig({
   root: ".",
   base: "./",
   build: {
-    outDir: resolve(__dirname, "../app/src/main/assets"),
+    outDir: resolve(__dirname, "../../native/android/app/src/main/assets"),
     emptyOutDir: true,
   },
 });

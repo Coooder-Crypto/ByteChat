@@ -1,5 +1,5 @@
 packages:
-  - "ByteChat-native/hybrid"
-  - "ByteChat-website"
-  - "ByteChat-backend"
+  - "apps/*"
+  - "backend"
+  - "native/*"
   - "packages/*"
