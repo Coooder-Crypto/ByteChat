@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChatMessage, MsgStatus } from "./types";
+import { ChatMessage, MsgStatus, cryptoRandom } from "@bytechat/core";
 
 const STORAGE_KEYS = {
   history: (room: string) => `bytechat_history_${room}`,
@@ -283,13 +283,4 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
     uploadAndSend,
     loadHistory,
   };
-}
-
-function cryptoRandom() {
-  if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
-    const buf = new Uint32Array(2);
-    window.crypto.getRandomValues(buf);
-    return `${buf[0].toString(16)}${buf[1].toString(16)}`;
-  }
-  return Math.random().toString(16).slice(2);
 }
