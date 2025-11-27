@@ -1,6 +1,5 @@
-import { HomeProps } from "../core/types";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { HomeProps } from "@bytechat/core";
+import { Button, Input } from "@bytechat/ui";
 
 export function HomeView({
   userId,

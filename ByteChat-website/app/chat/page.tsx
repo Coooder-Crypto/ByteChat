@@ -2,10 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useChat } from "../../components/useChat";
-import { MessageBubble } from "../../components/MessageBubble";
-import { Textarea } from "../../components/ui/textarea";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
+import { MessageBubble, Button, Input } from "@bytechat/ui";
 import { useRef, useState } from "react";
 
 export default function ChatPage() {

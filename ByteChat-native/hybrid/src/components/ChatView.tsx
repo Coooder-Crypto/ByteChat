@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChatProps } from "../core/types";
-import { MessageBubble } from "./MessageBubble";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { ChatProps } from "@bytechat/core";
+import { Button, Input, MessageBubble } from "@bytechat/ui";
 
 export function ChatView({
   roomId,

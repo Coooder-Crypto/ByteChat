@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadBasics, persistBasics } from "../components/storage";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
+import { Input, Button } from "@bytechat/ui";
 
 // TODO: monorepo with native app
 export default function HomePage() {

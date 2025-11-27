@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { toneColor } from "../utils/theme";
-import { cn } from "../core/utils";
+import { cn } from "@bytechat/core";
 
 type HeaderBarProps = {
   view: "home" | "chat";

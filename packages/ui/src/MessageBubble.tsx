@@ -1,4 +1,4 @@
-import { ChatMessage } from "../core/types";
+import { ChatMessage } from "@bytechat/core";
 
 const detectMediaKind = (msg: ChatMessage) => {
   const hint = (msg.msgType || "").toLowerCase();
@@ -38,11 +38,7 @@ export function MessageBubble({ msg, isMe }: { msg: ChatMessage; isMe: boolean }
     if (msg.mediaUrl && kind === "video") {
       return (
         <div className="flex flex-col gap-1">
-          <video
-            src={msg.mediaUrl}
-            controls
-            className="max-h-60 rounded-lg border border-gray-200 bg-black"
-          />
+          <video src={msg.mediaUrl} controls className="max-h-60 rounded-lg border border-gray-200 bg-black" />
           {msg.content ? (
             <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.content}</div>
           ) : null}
