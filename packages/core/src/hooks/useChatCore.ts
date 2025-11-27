@@ -6,6 +6,7 @@ import { useMessageState } from "./messages";
 import { useHistory } from "./history";
 import { useChatBasics } from "./basics";
 import { useChatSocket } from "./socket";
+import { loadCache, saveCache, loadRoomList, saveRoomList } from "../storage";
 
 // 组合 Hook：对外 API 不变，内部拆分为 basics / messages / history / socket / media
 export function useChatCore() {
@@ -45,13 +46,27 @@ export function useChatCore() {
   // 监听房间切换，加载缓存
   useEffect(() => {
     history.resetHistory();
-    history.loadCachedMessages();
+    loadCache(roomId).then((cached) => {
+      setMessages(cached);
+      if (cached.length) queueMicrotask(scrollToBottom);
+    });
   }, [roomId]);
 
   // 持久化消息缓存
   useEffect(() => {
-    history.persistMessages(messages);
+    saveCache(roomId, messages);
   }, [messages, roomId]);
+
+  // 加载房间列表（异步）
+  useEffect(() => {
+    loadRoomList().then((list) => {
+      if (list.length) setRoomList(list);
+    });
+  }, []);
+
+  useEffect(() => {
+    saveRoomList(roomList);
+  }, [roomList]);
 
   // 历史上拉加载
   useEffect(() => {

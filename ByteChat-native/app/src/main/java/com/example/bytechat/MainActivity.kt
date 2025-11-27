@@ -14,6 +14,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.JavascriptInterface
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
                     settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                     settings.mediaPlaybackRequiresUserGesture = false
                     webViewClient = WebViewClient()
+                    addJavascriptInterface(NativeStorageBridge(context), "NativeStorage")
                     webChromeClient = object : WebChromeClient() {
                         override fun onShowFileChooser(
                             webView: WebView?,

@@ -1,4 +1,5 @@
 import { ChatMessage } from "./types";
+import { getStorage } from "@bytechat/storage-native";
 
 export const STORAGE_KEYS = {
   user: "bytechat_user",
@@ -8,10 +9,12 @@ export const STORAGE_KEYS = {
   roomList: "bytechat_room_list",
 };
 
-export function loadCache(roomId: string): ChatMessage[] {
-  const raw = localStorage.getItem(STORAGE_KEYS.history(roomId));
-  if (!raw) return [];
+const provider = () => getStorage();
+
+export async function loadCache(roomId: string): Promise<ChatMessage[]> {
   try {
+    const raw = await provider().get(STORAGE_KEYS.history(roomId));
+    if (!raw) return [];
     const parsed = JSON.parse(raw) as ChatMessage[];
     return parsed.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   } catch {
@@ -19,15 +22,19 @@ export function loadCache(roomId: string): ChatMessage[] {
   }
 }
 
-export function saveCache(roomId: string, messages: ChatMessage[]) {
+export async function saveCache(roomId: string, messages: ChatMessage[]) {
   const snapshot = messages.slice(-60);
-  localStorage.setItem(STORAGE_KEYS.history(roomId), JSON.stringify(snapshot));
+  try {
+    await provider().set(STORAGE_KEYS.history(roomId), JSON.stringify(snapshot));
+  } catch {
+    /* ignore */
+  }
 }
 
-export function loadRoomList(): string[] {
-  const raw = localStorage.getItem(STORAGE_KEYS.roomList);
-  if (!raw) return ["lobby", "dev", "support"];
+export async function loadRoomList(): Promise<string[]> {
   try {
+    const raw = await provider().get(STORAGE_KEYS.roomList);
+    if (!raw) return ["lobby", "dev", "support"];
     const parsed = JSON.parse(raw) as string[];
     return Array.from(new Set(parsed.filter(Boolean))).slice(0, 10);
   } catch {
@@ -35,6 +42,10 @@ export function loadRoomList(): string[] {
   }
 }
 
-export function saveRoomList(list: string[]) {
-  localStorage.setItem(STORAGE_KEYS.roomList, JSON.stringify(list.slice(0, 10)));
+export async function saveRoomList(list: string[]) {
+  try {
+    await provider().set(STORAGE_KEYS.roomList, JSON.stringify(list.slice(0, 10)));
+  } catch {
+    /* ignore */
+  }
 }
