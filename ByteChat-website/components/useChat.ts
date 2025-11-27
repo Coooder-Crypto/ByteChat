@@ -61,6 +61,28 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
     [messages]
   );
 
+  const wsToHttpBase = (addr: string) =>
+    addr.replace(/^wss?:\/\//, addr.startsWith("wss") ? "https://" : "http://").replace(/\/ws$/, "");
+
+  const withAbsoluteMedia = (mediaUrl?: string | null, overrideWs?: string) => {
+    if (!mediaUrl) return mediaUrl;
+    const wsBase = wsToHttpBase(overrideWs || wsUrl);
+    try {
+      const wsHost = new URL(wsBase).hostname;
+      // If emulator-sent absolute URL points to 10.0.2.2, rewrite to current WS host (e.g., localhost)
+      if (mediaUrl.startsWith("http")) {
+        const u = new URL(mediaUrl);
+        if (u.hostname === "10.0.2.2") {
+          u.hostname = wsHost || "localhost";
+        }
+        return u.toString();
+      }
+      return `${wsBase}${mediaUrl}`;
+    } catch {
+      return mediaUrl;
+    }
+  };
+
   const connect = () => {
     if (!wsUrl || !userId || !roomId) {
       alert("请填写用户、房间与 WebSocket 地址");
@@ -96,7 +118,7 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
               senderId: data.senderId,
               msgType: data.msgType,
               content: data.content,
-              mediaUrl: data.mediaUrl,
+              mediaUrl: withAbsoluteMedia(data.mediaUrl),
               metadata: data.metadata,
               createdAt: data.createdAt || Date.now(),
               localStatus: "ok",
@@ -153,6 +175,7 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
       ...msg,
       id: msg.id || msg.clientId || cryptoRandom(),
       createdAt: msg.createdAt || Date.now(),
+      msgType: msg.msgType || (msg.mediaUrl ? "image" : "text"),
       localStatus: incoming ? msg.localStatus : msg.localStatus || "pending",
     };
     setMessages((prev) => {
@@ -170,7 +193,7 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
   const loadHistory = async () => {
     if (loadingHistory || historyExhausted) return;
     setLoadingHistory(true);
-    const base = wsUrl.replace(/^wss?:\/\//, wsUrl.startsWith("wss") ? "https://" : "http://").replace(/\/ws$/, "");
+    const base = wsToHttpBase(wsUrl);
     const cursorParam = historyCursor ? `&cursor=${encodeURIComponent(historyCursor)}` : "";
     try {
       const res = await fetch(`${base}/history?roomId=${encodeURIComponent(roomId)}&limit=20${cursorParam}`);
@@ -187,7 +210,11 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
             const sameClient =
               !m.clientId || arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
             return sameId && sameClient;
-          });
+          }).map((m) =>
+            m.mediaUrl && !m.mediaUrl.startsWith("http")
+              ? { ...m, mediaUrl: withAbsoluteMedia(m.mediaUrl) }
+              : m
+          );
           return merged.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         });
         if (data.nextCursor) setHistoryCursor(data.nextCursor);
@@ -197,6 +224,44 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
       console.warn("history fetch failed", err);
     } finally {
       setLoadingHistory(false);
+    }
+  };
+
+  const sendMediaMessage = (mediaUrl: string, msgType: string = "image", content?: string) => {
+    const msgId = `c-${cryptoRandom()}`;
+    const payload = {
+      type: "message",
+      id: msgId,
+      clientId: msgId,
+      msgType,
+      content: content || "",
+      mediaUrl,
+      roomId,
+      senderId: userId,
+      createdAt: Date.now(),
+    };
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      addMessage({ ...(payload as any), localStatus: "fail" } as ChatMessage);
+      return;
+    }
+    addMessage({ ...(payload as any), localStatus: "pending" } as ChatMessage);
+    wsRef.current.send(JSON.stringify(payload));
+  };
+
+  const uploadAndSend = async (file: File, text?: string) => {
+    const base = wsToHttpBase(wsUrl);
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch(`${base}/upload`, { method: "POST", body: form });
+      if (!res.ok) throw new Error("upload failed");
+      const data = await res.json();
+      if (!data?.url) throw new Error("no url");
+      const mediaUrl = data.url.startsWith("http") ? data.url : `${base}${data.url}`;
+      const type = file.type.startsWith("video") ? "video" : "image";
+      sendMediaMessage(mediaUrl, type, text);
+    } catch (err) {
+      console.warn("upload failed", err);
     }
   };
 
@@ -214,6 +279,8 @@ export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId
     connect,
     disconnect,
     sendMessage,
+    sendMediaMessage,
+    uploadAndSend,
     loadHistory,
   };
 }
