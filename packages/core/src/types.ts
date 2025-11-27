@@ -1,3 +1,5 @@
+import type React from "react";
+
 export type MsgStatus = "pending" | "ok" | "fail";
 
 export type ChatMessage = {

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@bytechat/core": ["packages/core/src"],
+      "@bytechat/core/*": ["packages/core/src/*"],
+      "@bytechat/ui": ["packages/ui/src"],
+      "@bytechat/ui/*": ["packages/ui/src/*"]
+    }
+  }
+}

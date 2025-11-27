@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "../../core/utils";
+import { cn } from "@bytechat/core";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 

@@ -75,6 +75,19 @@
    - 历史：`GET /history?roomId=xxx&limit=20&cursor=<createdAt_ms>_<id>`
    - 健康：`GET /health`
 
+## pnpm workspace（根目录）
+- 目录已配置 `pnpm-workspace.yaml`，工作区含：`ByteChat-native/hybrid`、`ByteChat-website`、`ByteChat-backend`，以及共享包 `packages/core`（类型/存储/工具）、`packages/ui`（按钮/输入框/气泡等基础 UI）。
+- 前端 WS 地址使用环境变量：
+  - Vite/hybrid：在 `ByteChat-native/hybrid/.env` 设置 `VITE_WS_URL=ws://host:port/ws`
+  - Next/web：在 `ByteChat-website/.env.local` 设置 `NEXT_PUBLIC_WS_URL=ws://host:port/ws`
+  - 未设置时回退：浏览器默认 `ws://localhost:3000/ws`，Android 模拟器回退 `ws://10.0.2.2:3000/ws`
+- 常用命令（在项目根执行，需要 pnpm 8+/Node 18+）：
+  - `pnpm install`            # 安装各子包依赖
+  - `pnpm dev:hybrid`         # 运行 hybrid 前端（Vite）
+  - `pnpm build:hybrid`       # 构建 hybrid 并输出到 Android assets
+  - `pnpm dev:website` / `pnpm build:website`
+  - `pnpm dev:backend` / `pnpm start:backend`
+
 ## Android 前端（Hybrid）
 - 代码在 `ByteChat-native/`，WebView 加载 `app/src/main/assets/index.html`（React 模板，无聊天逻辑，可自行扩展）。
 - 前端源码在 `ByteChat-native/hybrid/`，使用 Vite + React；构建命令会把产物输出到 `app/src/main/assets`：
