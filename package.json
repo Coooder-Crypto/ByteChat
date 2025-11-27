@@ -23,6 +23,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@bytechat/ui": "0.1.0"
+    "@bytechat/ui": "0.1.0",
+    "@bytechat/storage": "0.1.0"
   }
 }

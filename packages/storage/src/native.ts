@@ -1,5 +1,5 @@
-import { StorageProvider } from "@bytechat/storage-web";
-import { webStorage } from "@bytechat/storage-web";
+import type { StorageProvider } from "./types";
+import { webStorage } from "./web";
 
 type NativeBridge = {
   get?: (key: string, uid?: string) => Promise<string | null> | string | null;
@@ -39,17 +39,10 @@ function wrapBridge(bridge: NativeBridge): StorageProvider {
   };
 }
 
-const detectNative = (): StorageProvider | null => {
-  if (typeof window === "undefined") return null;
+export const nativeStorage = (() => {
+  if (typeof window === "undefined") return webStorage;
   const anyWin = window as any;
-  const candidate: NativeBridge | undefined = anyWin.NativeStorage;
-  if (candidate && (candidate.get || candidate.set)) {
-    return wrapBridge(candidate);
-  }
-  return null;
-};
-
-export const nativeStorage: StorageProvider =
-  detectNative() || webStorage;
-
-export const getStorage = (): StorageProvider => nativeStorage;
+  const bridge: NativeBridge | undefined = anyWin.NativeStorage;
+  if (bridge && (bridge.get || bridge.set)) return wrapBridge(bridge);
+  return webStorage;
+})();
