@@ -8,9 +8,11 @@ export function useChatConnection() {
     localStorage.getItem(STORAGE_KEYS.user) || `u-${Math.floor(Math.random() * 9000 + 1000)}`
   );
   const [roomId, setRoomId] = useState(localStorage.getItem(STORAGE_KEYS.room) || "lobby");
-  const [wsUrl, setWsUrl] = useState(
-    localStorage.getItem(STORAGE_KEYS.ws) || "ws://10.0.2.2:3000/ws"
-  );
+  const defaultWs =
+    typeof window !== "undefined" && window.location?.hostname === "localhost"
+      ? "ws://localhost:3000/ws"
+      : "ws://10.0.2.2:3000/ws";
+  const [wsUrl, setWsUrl] = useState(localStorage.getItem(STORAGE_KEYS.ws) || defaultWs);
   const [status, setStatus] = useState<{ text: string; tone: "ok" | "warn" | "fail" | "muted" }>({
     text: "Disconnected",
     tone: "muted",
@@ -60,6 +62,11 @@ export function useChatConnection() {
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
   }, [loadingHistory, historyExhausted]);
+
+  // always keep view at latest message
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const sortedMessages = useMemo(
     () => [...messages].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)),
