@@ -1,0 +1,27 @@
+{
+  "name": "bytechat-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "ByteChat-native/hybrid",
+    "ByteChat-website",
+    "ByteChat-backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:hybrid": "pnpm --filter bytechat-hybrid dev",
+    "build:hybrid": "pnpm --filter bytechat-hybrid build",
+    "lint:hybrid": "pnpm --filter bytechat-hybrid lint",
+    "dev:website": "pnpm --filter bytechat-website dev",
+    "build:website": "pnpm --filter bytechat-website build",
+    "lint:website": "pnpm --filter bytechat-website lint",
+    "dev:backend": "pnpm --filter bytechat-backend dev",
+    "start:backend": "pnpm --filter bytechat-backend start"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@bytechat/ui": "0.1.0"
+  }
+}
