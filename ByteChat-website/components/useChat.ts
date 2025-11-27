@@ -9,10 +9,12 @@ const STORAGE_KEYS = {
 };
 
 export function useChat({ roomId, userId, wsOverride }: { roomId: string; userId: string; wsOverride?: string }) {
+  const envWs = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_WS_URL) || "";
   const defaultWs =
-    typeof window !== "undefined" && window.location.hostname === "localhost"
+    envWs ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost"
       ? "ws://localhost:3000/ws"
-      : "ws://10.0.2.2:3000/ws";
+      : "ws://10.0.2.2:3000/ws");
   const [wsUrl, setWsUrl] = useState(() => wsOverride || localStorage.getItem(STORAGE_KEYS.ws) || defaultWs);
   const [status, setStatus] = useState<{ text: string; tone: "ok" | "warn" | "fail" | "muted" }>({
     text: "Disconnected",

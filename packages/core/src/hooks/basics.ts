@@ -2,10 +2,19 @@ import { useEffect, useState } from "react";
 import { STORAGE_KEYS, loadRoomList, saveRoomList } from "../storage";
 
 export function useChatBasics() {
-  const defaultWs =
-    typeof window !== "undefined" && window.location?.hostname === "localhost"
+  const resolveDefaultWs = () => {
+    // 优先取环境变量：Vite (VITE_WS_URL) 或 Next (NEXT_PUBLIC_WS_URL)
+    const viteWs = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_WS_URL) || "";
+    const nextWs = (typeof process !== "undefined" && (process as any).env?.NEXT_PUBLIC_WS_URL) || "";
+    const envWs = viteWs || nextWs;
+    if (envWs) return envWs;
+    // 回退：本机浏览器用 localhost，模拟器用 10.0.2.2
+    return typeof window !== "undefined" && window.location?.hostname === "localhost"
       ? "ws://localhost:3000/ws"
       : "ws://10.0.2.2:3000/ws";
+  };
+
+  const defaultWs = resolveDefaultWs();
 
   const [userId, setUserId] = useState(
     typeof window !== "undefined"
