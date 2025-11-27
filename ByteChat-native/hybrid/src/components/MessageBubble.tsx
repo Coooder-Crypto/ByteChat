@@ -1,5 +1,16 @@
 import { ChatMessage } from "../core/types";
-import { toneColor } from "../utils/theme";
+
+const detectMediaKind = (msg: ChatMessage) => {
+  const hint = (msg.msgType || "").toLowerCase();
+  if (hint.startsWith("image")) return "image";
+  if (hint.startsWith("video")) return "video";
+  if (msg.mediaUrl) {
+    const lower = msg.mediaUrl.toLowerCase();
+    if (/\.(png|jpe?g|gif|webp|bmp|heic|heif)(\?|$)/.test(lower)) return "image";
+    if (/\.(mp4|mov|webm|m4v|avi|mkv)(\?|$)/.test(lower)) return "video";
+  }
+  return null;
+};
 
 export function MessageBubble({ msg, isMe }: { msg: ChatMessage; isMe: boolean }) {
   const avatar = (
@@ -7,6 +18,39 @@ export function MessageBubble({ msg, isMe }: { msg: ChatMessage; isMe: boolean }
       {(msg.senderId || "U").charAt(0)}
     </div>
   );
+
+  const renderBody = () => {
+    const kind = detectMediaKind(msg);
+    if (msg.mediaUrl && kind === "image") {
+      return (
+        <div className="flex flex-col gap-1">
+          <img
+            src={msg.mediaUrl}
+            alt="图片"
+            className="max-h-60 rounded-lg border border-gray-200 object-contain"
+          />
+          {msg.content ? (
+            <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+          ) : null}
+        </div>
+      );
+    }
+    if (msg.mediaUrl && kind === "video") {
+      return (
+        <div className="flex flex-col gap-1">
+          <video
+            src={msg.mediaUrl}
+            controls
+            className="max-h-60 rounded-lg border border-gray-200 bg-black"
+          />
+          {msg.content ? (
+            <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+          ) : null}
+        </div>
+      );
+    }
+    return <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.content || ""}</div>;
+  };
 
   return (
     <div
@@ -23,7 +67,7 @@ export function MessageBubble({ msg, isMe }: { msg: ChatMessage; isMe: boolean }
           <span className="truncate">{new Date(msg.createdAt || Date.now()).toLocaleTimeString()}</span>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.content || ""}</div>
+          {renderBody()}
           {msg.localStatus && (
             <span
               className="inline-block w-2 h-2 rounded-full shrink-0"

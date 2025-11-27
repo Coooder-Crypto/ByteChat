@@ -32,6 +32,7 @@ export type ChatProps = {
   onBack: () => void;
   onChangeInput: (v: string) => void;
   onSend: () => void;
+  onSendMedia: (file: File, text?: string) => void | Promise<void>;
   messagesRef: React.RefObject<HTMLDivElement>;
   isMe: (senderId: string) => boolean;
   loadingHistory: boolean;

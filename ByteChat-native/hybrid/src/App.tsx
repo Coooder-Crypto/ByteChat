@@ -25,6 +25,7 @@ export function App() {
     setView,
     joinRoom,
     sendMessage,
+    uploadAndSend,
     handleDisconnect,
   } = useChatConnection();
 
@@ -62,6 +63,7 @@ export function App() {
           }}
           onChangeInput={setInput}
           onSend={sendMessage}
+          onSendMedia={uploadAndSend}
           messagesRef={messagesRef}
           isMe={(id) => id === userId}
           loadingHistory={loadingHistory}

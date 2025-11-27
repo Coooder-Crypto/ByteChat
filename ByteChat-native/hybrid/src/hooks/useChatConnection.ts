@@ -29,6 +29,8 @@ export function useChatConnection() {
   const wsRef = useRef<WebSocket | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const currentRoomRef = useRef(roomId);
+  const shouldReconnect = useRef(true);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // persist basics
   useEffect(() => localStorage.setItem(STORAGE_KEYS.user, userId.trim()), [userId]);
@@ -112,10 +114,54 @@ export function useChatConnection() {
     );
   };
 
+  const wsToHttpBase = (addr: string) =>
+    addr
+      .replace(/^wss?:\/\//, addr.startsWith("wss") ? "https://" : "http://")
+      .replace(/\/ws$/, "");
+
+  const withAbsoluteMedia = (raw?: string | null) => {
+    if (!raw) return raw;
+    try {
+      const wsHost = new URL(wsUrl).hostname;
+      const base = wsToHttpBase(wsUrl);
+      if (raw.startsWith("http")) {
+        const u = new URL(raw);
+        if (["10.0.2.2", "localhost", "127.0.0.1"].includes(u.hostname) && wsHost) {
+          u.hostname = wsHost;
+        }
+        return u.toString();
+      }
+      return `${base}${raw}`;
+    } catch {
+      return raw;
+    }
+  };
+
+  const normalizeMediaUrl = (raw?: string | null) => {
+    if (!raw) return { payloadUrl: raw, displayUrl: raw };
+    try {
+      if (raw.startsWith("http")) {
+        const u = new URL(raw);
+        const pathOnly = `${u.pathname}${u.search || ""}`;
+        const display = withAbsoluteMedia(pathOnly);
+        return { payloadUrl: pathOnly, displayUrl: display };
+      }
+    } catch {
+      // ignore
+    }
+    const display = withAbsoluteMedia(raw);
+    return { payloadUrl: raw, displayUrl: display };
+  };
+
   const handleConnect = (targetRoom?: string, targetUser?: string, targetWs?: string) => {
     const room = targetRoom || roomId;
     const user = targetUser || userId;
     const wsAddr = targetWs || wsUrl;
+    shouldReconnect.current = true;
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
 
     if (!wsAddr || !user || !room) {
       alert("请填写用户、房间与 WebSocket 地址");
@@ -134,11 +180,19 @@ export function useChatConnection() {
       ws.onopen = () => {
         setConnected(true);
         updateStatus("Connected", "ok");
+        if (reconnectTimer.current) {
+          clearTimeout(reconnectTimer.current);
+          reconnectTimer.current = null;
+        }
       };
       ws.onerror = () => updateStatus("连接出错", "fail");
       ws.onclose = () => {
         setConnected(false);
         updateStatus("Disconnected", "muted");
+        if (shouldReconnect.current) {
+          if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+          reconnectTimer.current = setTimeout(() => handleConnect(room, user, wsAddr), 1500);
+        }
       };
       ws.onmessage = (event) => {
         try {
@@ -153,7 +207,7 @@ export function useChatConnection() {
               senderId: data.senderId,
               msgType: data.msgType,
               content: data.content,
-              mediaUrl: data.mediaUrl,
+              mediaUrl: withAbsoluteMedia(data.mediaUrl),
               metadata: data.metadata,
               createdAt: data.createdAt || Date.now(),
               localStatus: "ok",
@@ -179,6 +233,11 @@ export function useChatConnection() {
     wsRef.current = null;
     setConnected(false);
     updateStatus("Disconnected", "muted");
+    shouldReconnect.current = false;
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
   };
 
   const sendMessage = () => {
@@ -206,12 +265,31 @@ export function useChatConnection() {
     setInput("");
   };
 
+  const sendMediaMessage = (mediaUrl: string, msgType: string = "image", content?: string) => {
+    const msgId = `c-${cryptoRandom()}`;
+    const payload = {
+      type: "message",
+      id: msgId,
+      clientId: msgId,
+      msgType,
+      content: content || "",
+      mediaUrl,
+      roomId,
+      senderId: userId,
+      createdAt: Date.now(),
+    };
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      addMessage({ ...(payload as any), localStatus: "fail" } as ChatMessage);
+      return;
+    }
+    addMessage({ ...(payload as any), localStatus: "pending" } as ChatMessage);
+    wsRef.current.send(JSON.stringify(payload));
+  };
+
   const loadHistory = async () => {
     if (loadingHistory || historyExhausted) return;
     setLoadingHistory(true);
-    const base = wsUrl
-      .replace(/^wss?:\/\//, wsUrl.startsWith("wss") ? "https://" : "http://")
-      .replace(/\/ws$/, "");
+    const base = wsToHttpBase(wsUrl);
     const cursorParam = historyCursor ? `&cursor=${encodeURIComponent(historyCursor)}` : "";
     try {
       const res = await fetch(
@@ -232,6 +310,9 @@ export function useChatConnection() {
             const sameClient =
               !m.clientId || arr.findIndex((x) => x.clientId && x.clientId === m.clientId) === idx;
             return sameId && sameClient;
+          }).map((m) => {
+            if (!m.mediaUrl) return m;
+            return { ...m, mediaUrl: withAbsoluteMedia(m.mediaUrl) };
           });
           return merged.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         });
@@ -250,6 +331,47 @@ export function useChatConnection() {
       console.warn("history fetch failed", err);
     } finally {
       setLoadingHistory(false);
+    }
+  };
+
+  const uploadAndSend = async (file: File, text?: string) => {
+    if (!file) return;
+    const base = wsToHttpBase(wsUrl);
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch(`${base}/upload`, { method: "POST", body: form });
+      if (!res.ok) throw new Error("upload failed");
+      const data = await res.json();
+      if (!data?.url) throw new Error("no url");
+      const { payloadUrl, displayUrl } = normalizeMediaUrl(data.url);
+      const type = file.type.startsWith("video") ? "video" : "image";
+      const msgId = `c-${cryptoRandom()}`;
+      const payload = {
+        type: "message",
+        id: msgId,
+        clientId: msgId,
+        msgType: type,
+        content: text || "",
+        mediaUrl: payloadUrl,
+        roomId,
+        senderId: userId,
+        createdAt: Date.now(),
+      };
+      addMessage(
+        {
+          ...(payload as any),
+          mediaUrl: displayUrl || payloadUrl || undefined,
+          localStatus: wsRef.current && wsRef.current.readyState === WebSocket.OPEN ? "pending" : "fail",
+        } as ChatMessage,
+        false
+      );
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(payload));
+      }
+    } catch (err) {
+      console.warn("upload failed", err);
+      updateStatus("上传失败", "fail");
     }
   };
 
@@ -307,6 +429,8 @@ export function useChatConnection() {
     setView,
     joinRoom,
     sendMessage,
+    sendMediaMessage,
+    uploadAndSend,
     loadHistory,
     handleDisconnect,
     handleConnect,

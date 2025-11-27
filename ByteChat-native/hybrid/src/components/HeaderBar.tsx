@@ -28,7 +28,7 @@ export function HeaderBar({ view, roomId, status, onBack }: HeaderBarProps) {
             </button>
           )}
           <span className="text-lg font-semibold truncate text-gray-900">
-            {isChat ? `房间：${roomId || ""}` : "ByteChat"}
+            {isChat ? `房间：${roomId || ""}` : "ByteChat Hybrid"}
           </span>
         </div>
         {isChat && status && (
