@@ -11,7 +11,15 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bytechat/core": ["../../packages/core/src"],
+      "@bytechat/core/*": ["../../packages/core/src/*"],
+      "@bytechat/ui": ["../../packages/ui/src"],
+      "@bytechat/ui/*": ["../../packages/ui/src/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

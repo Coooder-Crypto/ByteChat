@@ -21,6 +21,18 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@bytechat/core": [
+        "../packages/core/src"
+      ],
+      "@bytechat/core/*": [
+        "../packages/core/src/*"
+      ],
+      "@bytechat/ui": [
+        "../packages/ui/src"
+      ],
+      "@bytechat/ui/*": [
+        "../packages/ui/src/*"
       ]
     },
     "plugins": [
