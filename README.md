@@ -8,6 +8,25 @@
 - `ByteChat-backend/` — Node.js 后端（Express + ws + pg），提供 WebSocket + HTTP 历史查询。
 - `ByteChat-native/hybrid/` — Vite + React 项目（构建产物输出到 `ByteChat-native/app/src/main/assets` 供 WebView 使用）。
 
+
+## 效果（本地分别在模拟器运行 Hybrid 和浏览器运行 web 端，nodejs后端也是跑在本地的）
+
+### Web 和 Hybrid 的首页 
+![Homepage](./doc/homepage.png)
+
+### web 端上传图片
+![WebImg](./doc/WebImg.png)
+
+### 文字 
+![LongText](./doc/LongText.png)
+
+### hybrid 调用相机（没研究明白为啥默认使用了iphone的相机而不是mac的前置摄像头）
+![NativeCreama](./doc/NativeCreama.png)
+
+### hybrid 上传拍的图片
+![NativeCreama](./doc/NativeImg.png)
+
+
 ## 技术栈
 - **前端 (H5 模板)**：React 18 UMD + 自定义样式，运行于 Android WebView。
 - **原生容器**：Android WebView（Kotlin），加载本地资产。
