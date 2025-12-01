@@ -1,20 +1,10 @@
 import { useEffect, useState } from "react";
 import { STORAGE_KEYS, loadRoomList, saveRoomList } from "../storage";
+import { network, fallbackWs } from "@bytechat/network";
 
 export function useChatBasics() {
-  const resolveDefaultWs = () => {
-    // 优先取环境变量：Vite (VITE_WS_URL) 或 Next (NEXT_PUBLIC_WS_URL)
-    const viteWs = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_WS_URL) || "";
-    const nextWs = (typeof process !== "undefined" && (process as any).env?.NEXT_PUBLIC_WS_URL) || "";
-    const envWs = viteWs || nextWs;
-    if (envWs) return envWs;
-    // 回退：本机浏览器用 localhost，模拟器用 10.0.2.2
-    return typeof window !== "undefined" && window.location?.hostname === "localhost"
-      ? "ws://localhost:3000/ws"
-      : "ws://10.0.2.2:3000/ws";
-  };
-
-  const defaultWs = resolveDefaultWs();
+  const initialDefaultWs = fallbackWs();
+  const [defaultWsState, setDefaultWsState] = useState(initialDefaultWs);
 
   const [userId, setUserId] = useState(
     typeof window !== "undefined"
@@ -25,9 +15,15 @@ export function useChatBasics() {
     typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.room) || "lobby" : "lobby"
   );
   const [wsUrl, setWsUrl] = useState(
-    typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.ws) || defaultWs : defaultWs
+    typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.ws) || defaultWsState : defaultWsState
   );
-  const [roomList, setRoomList] = useState<string[]>(() => loadRoomList());
+  const [roomList, setRoomList] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadRoomList().then((list) => {
+      if (Array.isArray(list) && list.length) setRoomList(list);
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -44,7 +40,25 @@ export function useChatBasics() {
     localStorage.setItem(STORAGE_KEYS.ws, wsUrl.trim());
   }, [wsUrl]);
 
-  useEffect(() => saveRoomList(roomList), [roomList]);
+  useEffect(() => {
+    saveRoomList(roomList);
+  }, [roomList]);
+
+  useEffect(() => {
+    let active = true;
+    network
+      .getWsUrl()
+      .then((url) => {
+        if (active && url) {
+          setDefaultWsState(url);
+          setWsUrl((prev) => (prev === defaultWsState || prev === initialDefaultWs ? url : prev));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return {
     userId,
@@ -55,6 +69,6 @@ export function useChatBasics() {
     setRoomId,
     setWsUrl,
     setRoomList,
-    defaultWs,
+    defaultWs: defaultWsState,
   };
 }

@@ -3,10 +3,10 @@
 一个包含原生 Android（WebView Hybrid）、Web 前端（React H5），以及 Node.js 后端的简单聊天项目骨架。后端使用 Postgres 持久化，前端使用本地 WebView 载入 H5 页面。
 
 ## 目录结构
-- `ByteChat-native/` — Android 项目，WebView 加载本地 H5 模板（`app/src/main/assets/index.html`）。
-- `ByteChat-website/` — Web 前端目录（当前为空/自定义）。
-- `ByteChat-backend/` — Node.js 后端（Express + ws + pg），提供 WebSocket + HTTP 历史查询。
-- `ByteChat-native/hybrid/` — Vite + React 项目（构建产物输出到 `ByteChat-native/app/src/main/assets` 供 WebView 使用）。
+- `apps/web/` — Web 前端 (Next)。
+- `apps/hybrid-h5/` — WebView 用 H5 (Vite + React)，构建产物输出到原生资产。
+- `native/android/` — Android 项目，WebView 加载本地 H5 资产（`app/src/main/assets/index.html`）。
+- `backend/` — Node.js 后端（Express + ws + pg），提供 WebSocket + HTTP 历史查询。
 
 
 ## 效果（本地分别在模拟器运行 Hybrid 和浏览器运行 web 端，nodejs后端也是跑在本地的）
@@ -62,7 +62,7 @@
    ```
 2) 初始化后端（确保 Node 18+）  
    ```bash
-   cd ByteChat-backend
+   cd backend
    cp .env.example .env
    # 填入或确认：
    # PORT=3000
@@ -76,10 +76,10 @@
    - 健康：`GET /health`
 
 ## pnpm workspace（根目录）
-- 目录已配置 `pnpm-workspace.yaml`，工作区含：`ByteChat-native/hybrid`、`ByteChat-website`、`ByteChat-backend`，以及共享包 `packages/core`（类型/存储/工具）、`packages/ui`（按钮/输入框/气泡等基础 UI）。
+- 目录已配置 `pnpm-workspace.yaml`，工作区含：`apps/*`（web、hybrid-h5）、`native/*`（android）、`backend`，以及共享包 `packages/*`（core/ui/storage）。
 - 前端 WS 地址使用环境变量：
-  - Vite/hybrid：在 `ByteChat-native/hybrid/.env` 设置 `VITE_WS_URL=ws://host:port/ws`
-  - Next/web：在 `ByteChat-website/.env.local` 设置 `NEXT_PUBLIC_WS_URL=ws://host:port/ws`
+  - Vite/hybrid：在 `apps/hybrid-h5/.env` 设置 `VITE_WS_URL=ws://host:port/ws`
+  - Next/web：在 `apps/web/.env.local` 设置 `NEXT_PUBLIC_WS_URL=ws://host:port/ws`
   - 未设置时回退：浏览器默认 `ws://localhost:3000/ws`，Android 模拟器回退 `ws://10.0.2.2:3000/ws`
 - 常用命令（在项目根执行，需要 pnpm 8+/Node 18+）：
   - `pnpm install`            # 安装各子包依赖
@@ -89,14 +89,14 @@
   - `pnpm dev:backend` / `pnpm start:backend`
 
 ## Android 前端（Hybrid）
-- 代码在 `ByteChat-native/`，WebView 加载 `app/src/main/assets/index.html`（React 模板，无聊天逻辑，可自行扩展）。
-- 前端源码在 `ByteChat-native/hybrid/`，使用 Vite + React；构建命令会把产物输出到 `app/src/main/assets`：
+- 代码在 `native/android/`，WebView 加载 `app/src/main/assets/index.html`。
+- 前端源码在 `apps/hybrid-h5/`，使用 Vite + React；构建命令会把产物输出到 `native/android/app/src/main/assets`：
   ```bash
-  cd ByteChat-native/hybrid
+  cd apps/hybrid-h5
   npm install
-  npm run build   # 产物写入 ../app/src/main/assets
+  npm run build   # 产物写入 ../../native/android/app/src/main/assets
   ```
-- 运行：用 Android Studio 打开 `ByteChat-native`，选择设备/模拟器运行。
+- 运行：用 Android Studio 打开 `native/android`，选择设备/模拟器运行。
 
 ## API 与消息协议（后端）
 - WebSocket `/ws?userId=&roomId=`  

@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bytechat/core": ["../../packages/core/src"],
+      "@bytechat/core/*": ["../../packages/core/src/*"],
+      "@bytechat/ui": ["../../packages/ui/src"],
+      "@bytechat/ui/*": ["../../packages/ui/src/*"],
+      "@bytechat/storage": ["../../packages/storage/src"],
+      "@bytechat/storage/*": ["../../packages/storage/src/*"],
+      "@bytechat/network": ["../../packages/network/src"],
+      "@bytechat/network/*": ["../../packages/network/src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
