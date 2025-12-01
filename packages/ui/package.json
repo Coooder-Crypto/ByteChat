@@ -10,7 +10,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@bytechat/core": "0.1.0",
+    "@bytechat/core": "workspace:*",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.0"
   }
