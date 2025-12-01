@@ -7,8 +7,8 @@ local.properties
 # IDE (JetBrains/Android Studio)
 /.idea
 /.idea/**
-ByteChat-native/.idea
-ByteChat-native/.idea/**
+native/android/.idea
+native/android/.idea/**
 **/.idea
 **/.idea/**
 !.idea/.name
@@ -24,19 +24,18 @@ app/build
 .cxx
 *.apk
 *.ap_
-*.aab
+*.aabByteChat-website/components/useChat.ts
 *.keystore
 *.jks
 
 # Hybrid/Vite outputs (keep source, ignore build)
-ByteChat-native/hybrid/node_modules
-ByteChat-native/hybrid/dist
-ByteChat-native/app/src/main/assets/assets
-ByteChat-backend/uploads
+apps/hybrid-h5/node_modules
+apps/hybrid-h5/dist
+native/android/app/src/main/assets/assets
+backend/uploads
 
 # Web / backend (Node, tooling)
 node_modules
-pnpm-lock.yaml
 package-lock.json
 yarn.lock
 dist
@@ -61,14 +60,9 @@ pnpm-debug.log*
 
 # Env / secrets
 .env
-.env.*
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # OS / editor
 Thumbs.db
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+.idea/
+.pnpm-store
