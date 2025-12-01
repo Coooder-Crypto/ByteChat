@@ -21,8 +21,7 @@ export function useHistory({ roomId, wsUrl, withAbsoluteMedia, messagesRef, setM
   };
 
   const loadCachedMessages = () => {
-    const cached = loadCache(roomId);
-    setMessages(cached);
+    loadCache(roomId).then((cached) => setMessages(cached));
   };
 
   const loadHistory = async () => {

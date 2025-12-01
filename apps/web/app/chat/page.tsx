@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useChat } from "../../components/useChat";
 import { ChatHeader, ChatInputBar, MessageList } from "@bytechat/ui";
 import { useRef, useState } from "react";
 
-export default function ChatPage() {
+function ChatContent() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -75,5 +76,13 @@ export default function ChatPage() {
         onCancelPreview={clearPreview}
       />
     </main>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense>
+      <ChatContent />
+    </Suspense>
   );
 }

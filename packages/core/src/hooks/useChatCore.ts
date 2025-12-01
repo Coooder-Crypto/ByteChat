@@ -95,7 +95,7 @@ export function useChatCore() {
     addMessage,
     upsertSelfMessage,
     updateMessageStatus,
-    withAbsoluteMedia,
+    withAbsoluteMedia: (url) => normalizeMediaUrl(url, wsUrl).displayUrl,
   });
 
   const sendMessage = () => {
@@ -156,7 +156,6 @@ export function useChatCore() {
         wsRef,
         addMessage,
         updateStatus,
-        withAbsoluteMedia,
         createMsgId: () => `c-${cryptoRandom()}`,
       });
     } catch (err) {

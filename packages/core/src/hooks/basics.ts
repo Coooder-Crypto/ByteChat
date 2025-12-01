@@ -27,7 +27,13 @@ export function useChatBasics() {
   const [wsUrl, setWsUrl] = useState(
     typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.ws) || defaultWs : defaultWs
   );
-  const [roomList, setRoomList] = useState<string[]>(() => loadRoomList());
+  const [roomList, setRoomList] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadRoomList().then((list) => {
+      if (Array.isArray(list) && list.length) setRoomList(list);
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -44,7 +50,9 @@ export function useChatBasics() {
     localStorage.setItem(STORAGE_KEYS.ws, wsUrl.trim());
   }, [wsUrl]);
 
-  useEffect(() => saveRoomList(roomList), [roomList]);
+  useEffect(() => {
+    saveRoomList(roomList);
+  }, [roomList]);
 
   return {
     userId,

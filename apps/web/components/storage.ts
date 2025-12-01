@@ -9,6 +9,9 @@ const resolveDefaultWs = () => {
 };
 
 export function loadBasics() {
+  if (typeof window === "undefined") {
+    return { userId: `u-${Math.floor(Math.random() * 9000 + 1000)}`, roomId: "lobby", wsUrl: resolveDefaultWs() };
+  }
   const user = localStorage.getItem(STORAGE_KEYS.user) || `u-${Math.floor(Math.random() * 9000 + 1000)}`;
   const room = localStorage.getItem(STORAGE_KEYS.room) || "lobby";
   const ws = resolveDefaultWs();
@@ -17,6 +20,7 @@ export function loadBasics() {
 }
 
 export function persistBasics(userId: string, roomId: string, wsUrl: string) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEYS.user, userId.trim());
   localStorage.setItem(STORAGE_KEYS.room, roomId.trim());
   localStorage.setItem(STORAGE_KEYS.ws, wsUrl.trim());
