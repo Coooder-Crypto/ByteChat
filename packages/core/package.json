@@ -11,7 +11,8 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.2",
-    "@bytechat/storage": "workspace:*"
+    "@bytechat/storage": "workspace:*",
+    "@bytechat/network": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.3.10"

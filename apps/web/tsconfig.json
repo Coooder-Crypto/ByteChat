@@ -9,7 +9,13 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@bytechat/core": ["../../packages/core/src"],
+      "@bytechat/core/*": ["../../packages/core/src/*"],
+      "@bytechat/ui": ["../../packages/ui/src"],
+      "@bytechat/ui/*": ["../../packages/ui/src/*"],
+      "@bytechat/network": ["../../packages/network/src"],
+      "@bytechat/network/*": ["../../packages/network/src/*"]
     },
     "plugins": [
       {
