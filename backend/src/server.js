@@ -1,52 +1,76 @@
 import http from "http";
-import url from "url";
-import express from "express";
-import { WebSocketServer } from "ws";
-import { randomUUID } from "crypto";
-import cors from "cors";
+import url, { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
-import multer from "multer";
+import { randomUUID } from "crypto";
+import Koa from "koa";
+import Router from "@koa/router";
+import cors from "@koa/cors";
+import { koaBody } from "koa-body";
+import serve from "koa-static";
+import mount from "koa-mount";
+import { WebSocketServer } from "ws";
 import { config } from "./config.js";
 import { pool, initDb } from "./db.js";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+const app = new Koa();
+const router = new Router();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const baseDir = path.resolve(__dirname, "..");
 
-const uploadDir = path.join(process.cwd(), "uploads");
+// ---- middleware ----
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
+// simple error handler
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    console.error("Unhandled error", err);
+    ctx.status = err.status || 500;
+    ctx.body = { error: err.message || "internal_error" };
+  }
+});
+
+const uploadDir = path.join(baseDir, "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    cb(null, `${Date.now()}-${randomUUID()}${ext}`);
-  },
+
+app.use(
+  koaBody({
+    multipart: true,
+    formidable: {
+      uploadDir,
+      keepExtensions: true,
+      maxFileSize: 5 * 1024 * 1024,
+      filter: (part) => (part.mimetype ? part.mimetype.startsWith("image/") : true),
+    },
+  })
+);
+
+app.use(mount("/uploads", serve(uploadDir, { maxage: 0 })));
+
+// ---- routes ----
+router.get("/health", (ctx) => {
+  ctx.body = { ok: true };
 });
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only images allowed"));
-    }
-    cb(null, true);
-  },
-});
 
-// Health
-app.get("/health", (_req, res) => res.json({ ok: true }));
+// history pagination
+router.get("/history", async (ctx) => {
+  const { roomId, cursor } = ctx.query;
+  const limit = Math.min(Number(ctx.query.limit) || 20, 100);
+  if (!roomId) {
+    ctx.status = 400;
+    ctx.body = { error: "roomId required" };
+    return;
+  }
 
-// History pagination: cursor = "<createdAtMs>_<id>"
-app.get("/history", async (req, res) => {
-  const { roomId, cursor } = req.query;
-  const limit = Math.min(Number(req.query.limit) || 20, 100);
-  if (!roomId) return res.status(400).json({ error: "roomId required" });
-
-  const [cursorTs, cursorId] = cursor ? cursor.split("_") : [Date.now(), ""];
+  const [cursorTs, cursorId] = cursor ? cursor.toString().split("_") : [Date.now(), ""];
   const cursorDate = new Date(Number(cursorTs) || Date.now());
 
   try {
@@ -80,24 +104,38 @@ app.get("/history", async (req, res) => {
 
     const last = items[items.length - 1];
     const nextCursor = last ? `${last.createdAt}_${last.id}` : null;
-    res.json({ items, nextCursor });
+    ctx.body = { items, nextCursor };
   } catch (err) {
     console.error("history error", err);
-    res.status(500).json({ error: "history_failed" });
+    ctx.status = 500;
+    ctx.body = { error: "history_failed" };
   }
 });
 
-// Upload image
-// TODO: use blob service instead
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "no_file" });
+router.post("/upload", async (ctx) => {
+  const file = ctx.request.files?.file;
+  const first = Array.isArray(file) ? file[0] : file;
+  if (!first) {
+    ctx.status = 400;
+    ctx.body = { error: "no_file" };
+    return;
   }
-  const url = `/uploads/${req.file.filename}`;
-  res.json({ url });
+  const mimetype = first.mimetype || "";
+  if (!mimetype.startsWith("image/")) {
+    ctx.status = 400;
+    ctx.body = { error: "only_images_allowed" };
+    return;
+  }
+  const filename = path.basename(first.filepath || first.path || "");
+  const urlPath = `/uploads/${filename}`;
+  ctx.body = { url: urlPath };
 });
 
-const server = http.createServer(app);
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+// ---- websocket ----
+const server = http.createServer(app.callback());
 const wss = new WebSocketServer({ noServer: true });
 const rooms = new Map(); // roomId -> Set<WebSocket>
 
@@ -235,7 +273,6 @@ async function saveMessage(msg) {
     return { id: rows[0].id, createdAt: Number(rows[0].created_at_ms) };
   }
 
-  // If duplicate client_id, fetch existing record
   const existing = await pool.query(
     "SELECT id, EXTRACT(EPOCH FROM created_at) * 1000 AS created_at_ms FROM messages WHERE client_id = $1 LIMIT 1",
     [msg.clientId]
@@ -243,7 +280,6 @@ async function saveMessage(msg) {
   if (existing.rows[0]) {
     return { id: existing.rows[0].id, createdAt: Number(existing.rows[0].created_at_ms) };
   }
-  // fallback
   return { id: msg.id, createdAt: msg.createdAt.getTime() };
 }
 
@@ -271,7 +307,7 @@ function broadcast(roomId, payload) {
   }
 }
 
-// Heartbeat
+// heartbeat
 setInterval(() => {
   for (const set of rooms.values()) {
     for (const ws of set) {
@@ -290,7 +326,7 @@ async function start() {
   try {
     await initDb();
     server.listen(config.port, () => {
-      console.log(`HTTP/WS server listening on :${config.port}`);
+      console.log(`HTTP/WS server (Koa) listening on :${config.port}`);
     });
   } catch (err) {
     console.error("server init failed", err);
